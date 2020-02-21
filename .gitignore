@@ -1,7 +1,5 @@
 node_modules
 lerna-debug.log
 .DS_Store
-lib
-dist
 zip
 .idea

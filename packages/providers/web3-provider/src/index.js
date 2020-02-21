@@ -36,6 +36,7 @@ class WalletConnectProvider extends ProviderEngine {
     this.connected = false
     this.isWalletConnect = true
     this.connectCallbacks = []
+    this.sessionCreatedCallbacks = []
     this.accounts = []
     this.chainId = typeof opts.chainId !== 'undefined' ? opts.chainId : 1
     this.networkId = this.chainId
@@ -206,6 +207,16 @@ class WalletConnectProvider extends ProviderEngine {
     }
   }
 
+  onSessionCreated (callback) {
+    this.sessionCreatedCallbacks.push(callback)
+  }
+
+  triggerSessionCreated (result) {
+    if (this.sessionCreatedCallbacks && this.sessionCreatedCallbacks.length) {
+      this.sessionCreatedCallbacks.forEach(callback => callback(result))
+    }
+  }
+
   async close () {
     const wc = await this.getWalletConnector({ disableSessionCreation: true })
     await wc.killSession()
@@ -298,6 +309,7 @@ class WalletConnectProvider extends ProviderEngine {
           : undefined
         wc.createSession(sessionRequestOpions)
           .then(() => {
+            this.triggerSessionCreated(wc)
             if (this.qrcode) {
               WalletConnectQRCodeModal.open(wc.uri, () => {
                 reject(new Error('User closed WalletConnect modal'))
